@@ -39,9 +39,16 @@ const Checkout = () => {
       return alert('Please provide or select a shipping address')
     }
 
-    // For demo total, we'll use unit price lookup
-    const { sampleProducts } = await import('@/lib/mock-api')
-    const orderTotal = items.reduce((acc, cur) => acc + (sampleProducts.find((p) => p.id === cur.productId)?.price.amount ?? 0) * cur.quantity, 0)
+    // Lookup unit prices from backend products
+    let orderTotal = 0
+    await Promise.all(items.map(async (it) => {
+      try {
+        const p = await (await import('@/lib/api-client')).getProductById(it.productId)
+        orderTotal += (p?.price?.amount ?? 0) * it.quantity
+      } catch (e) {
+        // ignore missing product
+      }
+    }))
     
     const res = await fetch('/api/orders', {
       method: 'POST',

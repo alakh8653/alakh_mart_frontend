@@ -1,5 +1,5 @@
 import useSWR from 'swr'
-import { getProducts } from '@/lib/mock-api'
+import { getProducts } from '@/lib/api-client'
 
 const fetcher = async (key: string) => {
   const params = JSON.parse(key)

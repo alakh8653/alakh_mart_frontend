@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 // Header/Footer are provided by Layout
 import { useCartStore } from '@/store/cartStore'
 import { useWishlistStore } from '@/store/wishlistStore'
-import { getProductById } from '@/lib/mock-api'
+import { getProductById } from '@/lib/api-client'
 import { Product } from '@/types'
 
 const CartPage = () => {

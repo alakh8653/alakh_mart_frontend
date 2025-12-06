@@ -1,10 +1,10 @@
 import useSWR from 'swr'
-import { getProducts, getProductById } from '@/lib/mock-api'
+import { getProducts, getProductById } from '@/lib/api-client'
 import { Product } from '@/types'
 
 const fetcher = async (key: string) => {
   const [method, param] = key.split(':')
-  if (method === 'list') {
+    if (method === 'list') {
     const params = JSON.parse(param)
     const res = await getProducts(params)
     return res

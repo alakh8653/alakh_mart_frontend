@@ -78,7 +78,7 @@ export const Header: FC = () => {
 
             {showSuggestions && (
               <div className="absolute left-0 right-0 bg-white border mt-1 rounded-md z-40 max-h-80 overflow-auto">
-                {suggestions?.map((s, idx) => (
+                {suggestions?.map((s: any, idx: number) => (
                   <Link
                     key={s.id}
                     href={`/product/${s.id}`}

@@ -22,18 +22,18 @@ export const removeAuthToken = () => {
 // Fetch wrapper with auth header
 async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const token = getAuthToken()
-  const headers: HeadersInit = {
+  const headersObj: Record<string, string> = {
     'Content-Type': 'application/json',
-    ...options.headers,
+    ...(options.headers as Record<string, string> | undefined),
   }
 
   if (token) {
-    headers['Authorization'] = `Token ${token}`
+    headersObj['Authorization'] = `Token ${token}`
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-    headers,
+    headers: headersObj,
   })
 
   if (!response.ok) {
@@ -54,8 +54,8 @@ export async function getProducts(params?: {
   const queryParams = new URLSearchParams()
   if (params?.q) queryParams.append('search', params.q)
   if (params?.category) queryParams.append('category', params.category)
-  if (params?.page) queryParams.append('page', params.page)
-  if (params?.limit) queryParams.append('page_size', params.limit)
+  if (params?.page !== undefined) queryParams.append('page', String(params.page))
+  if (params?.limit !== undefined) queryParams.append('page_size', String(params.limit))
 
   return fetchAPI(`/products/?${queryParams.toString()}`)
 }

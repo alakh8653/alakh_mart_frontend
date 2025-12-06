@@ -1,10 +1,30 @@
 import Head from 'next/head'
 import { useWishlistStore } from '@/store/wishlistStore'
-import { sampleProducts } from '@/lib/mock-api'
+import { getProductById } from '@/lib/api-client'
+import { useEffect, useState } from 'react'
+import { Product } from '@/types'
 
 export default function Wishlist(){
   const ids = useWishlistStore(s => s.ids)
-  const items = ids.map(i => sampleProducts.find(p => p.id === i)).filter(Boolean)
+  const [items, setItems] = useState<Product[]>([])
+
+  useEffect(() => {
+    let mounted = true
+    ;(async () => {
+      const results: Product[] = []
+      await Promise.all(ids.map(async (id) => {
+        try {
+          const p = await getProductById(id)
+          if (p) results.push(p)
+        } catch (e) {
+          // ignore
+        }
+      }))
+      if (mounted) setItems(results)
+    })()
+    return () => { mounted = false }
+  }, [ids])
+
   return (
     <div>
       <Head>

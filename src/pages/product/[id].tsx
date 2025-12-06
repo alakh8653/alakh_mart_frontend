@@ -5,7 +5,7 @@ import Head from 'next/head'
 import { Product } from '@/types'
 import { useCartStore } from '@/store/cartStore'
 import { ProductReviews } from '@/components/ProductReviews'
-import { getProductById, getProducts, sampleProducts } from '@/lib/mock-api'
+import { getProductById, getProducts } from '@/lib/api-client'
 import { useState } from 'react'
 import { useWishlistStore } from '@/store/wishlistStore'
 
@@ -88,10 +88,16 @@ function LinkCard({ product }: { product: Product }) {
 }
 
 export async function getStaticPaths() {
-  const paths = sampleProducts.map((p) => ({ params: { id: p.id } }))
-  return { paths, fallback: 'blocking' }
+  // Fetch a small page of products at build time to pre-render popular pages
+  try {
+    const data = await getProducts({ limit: 10, page: 1 })
+    const items = Array.isArray(data) ? data : data.items || []
+    const paths = items.map((p: any) => ({ params: { id: p.id } }))
+    return { paths, fallback: 'blocking' }
+  } catch (e) {
+    return { paths: [], fallback: 'blocking' }
+  }
 }
-
 export async function getStaticProps({ params }: any) {
   const id = params?.id as string
   const product = await getProductById(id)
@@ -100,7 +106,7 @@ export async function getStaticProps({ params }: any) {
     const cat = Array.isArray(product?.categories) ? product?.categories[0] : undefined
     if (cat) {
       const r = await getProducts({ category: cat, limit: 6 })
-      related = r.items.filter((p) => p.id !== id).slice(0, 6)
+      related = (r.items || []).filter((p: any) => p.id !== id).slice(0, 6)
     }
   } catch (e) {
     // ignore
