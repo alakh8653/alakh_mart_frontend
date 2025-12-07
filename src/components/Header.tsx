@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { useCartStore } from '@/store/cartStore'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/hooks/useAuth'
 import { FiShoppingCart } from 'react-icons/fi'
 import { useMemo, useState, useRef, FC, useEffect } from 'react'
 import { useSearch } from '@/hooks/useSearch'
@@ -9,8 +9,7 @@ import { useRouter } from 'next/router'
 
 export const Header: FC = () => {
   const total = useCartStore((s) => s.totalItems())
-  const { data: session } = useSession()
-  const user = session?.user as any
+  const { user } = useAuth()
   const [query, setQuery] = useState('')
   const { items: suggestions } = useSearch(query)
   const { categories } = useCategories()
@@ -95,7 +94,7 @@ export const Header: FC = () => {
         </div>
 
         <div className="ml-auto flex gap-3 items-center">
-          <Link href={user ? '/account' : '/login'}>{user ? user.name : 'Account'}</Link>
+          <Link href={user ? '/account' : '/login'}>{user ? user.username || user.email || user.name : 'Account'}</Link>
           <Link href="/cart" className="relative flex items-center">
             <FiShoppingCart size={20} />
             {total > 0 && (
