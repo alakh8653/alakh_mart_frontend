@@ -5,35 +5,35 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
-// Auth token management
-export const getAuthToken = () => {
+// Auth token management (store JWT access token)
+export const getAccessToken = () => {
   if (typeof window === 'undefined') return null
-  return localStorage.getItem('auth_token')
+  return localStorage.getItem('access_token')
 }
 
-export const setAuthToken = (token: string) => {
-  localStorage.setItem('auth_token', token)
+export const setAccessToken = (token: string) => {
+  localStorage.setItem('access_token', token)
 }
 
-export const removeAuthToken = () => {
-  localStorage.removeItem('auth_token')
+export const removeAccessToken = () => {
+  localStorage.removeItem('access_token')
 }
 
-// Fetch wrapper with auth header
+// Fetch wrapper with auth header (Bearer JWT)
 async function fetchAPI(endpoint: string, options: RequestInit = {}) {
-  const token = getAuthToken()
-  const headersObj: Record<string, string> = {
+  const token = getAccessToken()
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string> | undefined),
+    ...options.headers,
   }
 
   if (token) {
-    headersObj['Authorization'] = `Token ${token}`
+    headers['Authorization'] = `Bearer ${token}`
   }
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
-    headers: headersObj,
+    headers,
   })
 
   if (!response.ok) {
@@ -54,8 +54,8 @@ export async function getProducts(params?: {
   const queryParams = new URLSearchParams()
   if (params?.q) queryParams.append('search', params.q)
   if (params?.category) queryParams.append('category', params.category)
-  if (params?.page !== undefined) queryParams.append('page', String(params.page))
-  if (params?.limit !== undefined) queryParams.append('page_size', String(params.limit))
+  if (params?.page) queryParams.append('page', params.page)
+  if (params?.limit) queryParams.append('page_size', params.limit)
 
   return fetchAPI(`/products/?${queryParams.toString()}`)
 }
@@ -125,8 +125,9 @@ export async function registerUser(email: string, password: string, name: string
     method: 'POST',
     body: JSON.stringify({ email, password, username: name }),
   })
-  if (data.token) {
-    setAuthToken(data.token)
+  // backend returns { user, access, refresh }
+  if (data.access) {
+    setAccessToken(data.access)
   }
   return data
 }
@@ -136,8 +137,8 @@ export async function loginUser(email: string, password: string) {
     method: 'POST',
     body: JSON.stringify({ username: email, password }),
   })
-  if (data.token) {
-    setAuthToken(data.token)
+  if (data.access) {
+    setAccessToken(data.access)
   }
   return data
 }
