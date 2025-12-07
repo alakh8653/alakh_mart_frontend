@@ -5,28 +5,36 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
 
-// Auth token management (store JWT access token)
+// Auth token management (JWT)
 export const getAccessToken = () => {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('access_token')
 }
 
-export const setAccessToken = (token: string) => {
-  localStorage.setItem('access_token', token)
+export const getRefreshToken = () => {
+  if (typeof window === 'undefined') return null
+  return localStorage.getItem('refresh_token')
 }
 
-export const removeAccessToken = () => {
+export const setTokens = (access: string, refresh?: string) => {
+  if (typeof window === 'undefined') return
+  localStorage.setItem('access_token', access)
+  if (refresh) localStorage.setItem('refresh_token', refresh)
+}
+
+export const clearTokens = () => {
+  if (typeof window === 'undefined') return
   localStorage.removeItem('access_token')
+  localStorage.removeItem('refresh_token')
 }
 
-// Fetch wrapper with auth header (Bearer JWT)
+// Fetch wrapper with auth header
 async function fetchAPI(endpoint: string, options: RequestInit = {}) {
   const token = getAccessToken()
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     ...options.headers,
   }
-
   if (token) {
     headers['Authorization'] = `Bearer ${token}`
   }
@@ -125,9 +133,9 @@ export async function registerUser(email: string, password: string, name: string
     method: 'POST',
     body: JSON.stringify({ email, password, username: name }),
   })
-  // backend returns { user, access, refresh }
+  // backend returns `access` and `refresh` tokens
   if (data.access) {
-    setAccessToken(data.access)
+    setTokens(data.access, data.refresh)
   }
   return data
 }
@@ -138,13 +146,13 @@ export async function loginUser(email: string, password: string) {
     body: JSON.stringify({ username: email, password }),
   })
   if (data.access) {
-    setAccessToken(data.access)
+    setTokens(data.access, data.refresh)
   }
   return data
 }
 
 export async function logoutUser() {
-  removeAuthToken()
+  clearTokens()
 }
 
 export async function getCurrentUser() {

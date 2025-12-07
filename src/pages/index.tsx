@@ -5,13 +5,12 @@ import { useProducts } from '@/hooks/useProducts'
 import { useState } from 'react'
 import { ProductList } from '@/components/ProductList'
 import { Filters } from '@/components/Filters'
-import { Pagination } from '@/components/Pagination'
 
 const Home: NextPage = () => {
   const [category, setCategory] = useState<string | undefined>()
   const [page, setPage] = useState<number>(1)
   const limit = 12
-  const { items, loading, total } = useProducts({ limit, category, page })
+  const { items, total, loading } = useProducts({ limit, category, page })
   return (
     <div>
       <Head>
@@ -29,8 +28,18 @@ const Home: NextPage = () => {
             ) : (
               <>
                 <ProductList items={items} />
-                <div className="mt-4">
-                  <Pagination page={page} total={total ?? items.length} perPage={limit} onPage={(n) => setPage(n)} />
+                <div className="mt-4 flex items-center justify-center gap-3">
+                  <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="px-3 py-1 border rounded disabled:opacity-50">
+                    Prev
+                  </button>
+                  {total ? (
+                    <div className="text-sm text-gray-600">Page {page} of {Math.max(1, Math.ceil((total || 0) / limit))}</div>
+                  ) : (
+                    <div className="text-sm text-gray-600">Page {page}</div>
+                  )}
+                  <button onClick={() => setPage((p) => p + 1)} className="px-3 py-1 border rounded">
+                    Next
+                  </button>
                 </div>
               </>
             )}
