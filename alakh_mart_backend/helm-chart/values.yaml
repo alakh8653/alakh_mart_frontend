@@ -1,0 +1,17 @@
+replicaCount: 2
+image:
+  repository: alakh-mart-web
+  tag: latest
+service:
+  type: ClusterIP
+  port: 80
+postgres:
+  enabled: false
+redis:
+  enabled: false
+staging:
+  enabled: true
+  replicas: 1
+production:
+  enabled: true
+  replicas: 2

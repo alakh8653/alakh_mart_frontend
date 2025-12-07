@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: alakh_mart
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  redis:
+    image: redis:7
+    ports:
+      - '6379:6379'
+    networks:
+      - backend
+
+  web:
+    build: .
+    command: gunicorn alakh_mart.wsgi:application --bind 0.0.0.0:8000 --workers 3
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    environment:
+      - DEBUG=0
+      - DB_NAME=alakh_mart
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+
+  worker:
+    build: .
+    command: celery -A alakh_mart worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DB_NAME=alakh_mart
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    networks:
+      - backend
+
+volumes:
+  db_data:
+
+networks:
+  backend:
