@@ -18,7 +18,7 @@ const Home: NextPage = () => {
         <h1 className="text-3xl font-semibold mb-6">Featured products</h1>
         <div className="grid md:grid-cols-4 gap-6">
           <aside className="md:col-span-1">
-            <Filters products={items} onFilter={(f) => setCategory(f?.category)} />
+            <Filters onFilter={(f) => setCategory(f?.category)} />
           </aside>
           <div className="md:col-span-3">
             {loading ? (

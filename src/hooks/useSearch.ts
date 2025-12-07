@@ -1,13 +1,18 @@
 import useSWR from 'swr'
 import { getProducts } from '@/lib/api-client'
 
-const fetcher = async (key: string) => {
-  const params = JSON.parse(key)
-  return await getProducts(params)
-}
-
 export const useSearch = (q?: string) => {
+  const fetcher = async (params: { q?: string; limit?: number }) => {
+    const res = await getProducts(params)
+    // Normalize paginated or plain-array responses
+    if (!res) return []
+    if (Array.isArray(res)) return res
+    if (Array.isArray((res as any).results)) return (res as any).results
+    if (Array.isArray((res as any).items)) return (res as any).items
+    return []
+  }
+
   const key = q ? JSON.stringify({ q, limit: 5 }) : null
-  const { data, error } = useSWR(key, fetcher, { revalidateOnFocus: false })
-  return { items: data?.items, loading: !data && !error, error }
+  const { data, error } = useSWR(key, (k) => fetcher(JSON.parse(k)), { revalidateOnFocus: false })
+  return { items: data ?? [], loading: !data && !error, error }
 }
